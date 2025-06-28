@@ -10,5 +10,6 @@
         <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.6" />
         <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.6" />
         <PackageVersion Include="Microsoft.Extensions.Hosting" Version="9.0.6" />
+        <PackageVersion Include="Spectre.Console" Version="0.50.0" />
     </ItemGroup>
 </Project>

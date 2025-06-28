@@ -1,38 +1,20 @@
+using ConnectionManager.Cli.Extensions;
+using ConnectionManager.Cli.Services;
 using ConnectionManager.Core;
-using ConnectionManager.Core.Services.Interfaces;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
 var builder = Host.CreateApplicationBuilder(args);
 
-// Hardcoded connection string for local SQLite database
-const string connectionString = "Data Source=app.db";
-builder.Services.AddCore(connectionString);
+var connectionString = builder.Configuration.GetConnectionString("AppDbContext");
+if (string.IsNullOrWhiteSpace(connectionString))
+    throw new KeyNotFoundException("Connection string 'AppDbContext' not found in configuration.");
+
+builder.Services.AddCore(connectionString).AddCli();
 
 var host = builder.Build();
-
-// Test database connection
 using var scope = host.Services.CreateScope();
-var connectionProfilesService =
-    scope.ServiceProvider.GetRequiredService<IConnectionProfilesService>();
+var cliService = scope.ServiceProvider.GetRequiredService<ICliService>();
 
-var profilesResult = await connectionProfilesService.GetAllAsync();
-
-if (profilesResult.IsError)
-{
-    Console.WriteLine("Failed to retrieve connection profiles:");
-    foreach (var error in profilesResult.Errors)
-    {
-        Console.WriteLine($"- {error.Code}: {error.Description}");
-    }
-}
-else
-{
-    var profiles = profilesResult.Value;
-    Console.WriteLine($"Found {profiles.Count} connection profiles:");
-
-    foreach (var profile in profiles)
-    {
-        Console.WriteLine($"- {profile.Name} ({profile.ConnectionType})");
-    }
-}
+await cliService.RunAsync();
