@@ -1,6 +1,5 @@
 using ConnectionManager.Core;
-using ConnectionManager.Core.Data;
-using Microsoft.EntityFrameworkCore;
+using ConnectionManager.Core.Services.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -14,12 +13,26 @@ var host = builder.Build();
 
 // Test database connection
 using var scope = host.Services.CreateScope();
-var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+var connectionProfilesService =
+    scope.ServiceProvider.GetRequiredService<IConnectionProfilesService>();
 
-var profiles = await dbContext.ConnectionProfiles.ToListAsync();
-Console.WriteLine($"Found {profiles.Count} connection profiles:");
+var profilesResult = await connectionProfilesService.GetAllAsync();
 
-foreach (var profile in profiles)
+if (profilesResult.IsError)
 {
-    Console.WriteLine($"- {profile.Name} ({profile.ConnectionType})");
+    Console.WriteLine("Failed to retrieve connection profiles:");
+    foreach (var error in profilesResult.Errors)
+    {
+        Console.WriteLine($"- {error.Code}: {error.Description}");
+    }
+}
+else
+{
+    var profiles = profilesResult.Value;
+    Console.WriteLine($"Found {profiles.Count} connection profiles:");
+
+    foreach (var profile in profiles)
+    {
+        Console.WriteLine($"- {profile.Name} ({profile.ConnectionType})");
+    }
 }

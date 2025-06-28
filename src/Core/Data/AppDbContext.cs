@@ -1,11 +1,10 @@
-using ConnectionManager.Core.Constants;
+using ConnectionManager.Core.Common.Constants;
 using ConnectionManager.Core.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace ConnectionManager.Core.Data;
 
-// TODO make internal after testing
-public sealed class AppDbContext : DbContext
+internal sealed class AppDbContext : DbContext
 {
     #region construction
 

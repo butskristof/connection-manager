@@ -1,4 +1,7 @@
 using ConnectionManager.Core.Data;
+using ConnectionManager.Core.Services.Implementations;
+using ConnectionManager.Core.Services.Interfaces;
+using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -11,7 +14,12 @@ public static class DependencyInjection
         string connectionString
     )
     {
-        services.AddPersistence(connectionString);
+        services.AddPersistence(connectionString).AddServices();
+
+        services.AddValidatorsFromAssemblyContaining(
+            typeof(DependencyInjection),
+            includeInternalTypes: true
+        );
 
         return services;
     }
@@ -22,6 +30,17 @@ public static class DependencyInjection
     )
     {
         services.AddDbContext<AppDbContext>(builder => builder.UseSqlite(connectionString));
+
+        return services;
+    }
+
+    private static IServiceCollection AddServices(this IServiceCollection services)
+    {
+        // internal services
+        services.AddScoped<IValidationService, ValidationService>();
+
+        // external services
+        services.AddScoped<IConnectionProfilesService, ConnectionProfilesService>();
 
         return services;
     }
