@@ -6,5 +6,8 @@
     <File Path=".csharpierrc.json" />
     <File Path=".config\dotnet-tools.json" />
   </Folder>
-  <Folder Name="/src/" />
+  <Folder Name="/src/">
+    <Project Path="src\Cli\Cli.csproj" Type="Classic C#" />
+    <Project Path="src\Core\Core.csproj" Type="Classic C#" />
+  </Folder>
 </Solution>
