@@ -777,3 +777,4 @@ FodyWeavers.xsd
 
 # project-specific
 **/*CLAUDE*
+app.db

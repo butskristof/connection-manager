@@ -4,7 +4,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ConnectionManager.Core.Data;
 
-internal sealed class AppDbContext : DbContext
+// TODO make internal after testing
+public sealed class AppDbContext : DbContext
 {
     #region construction
 
