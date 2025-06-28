@@ -1,3 +1,4 @@
+using ConnectionManager.Core.Services.Contracts.ConnectionProfiles;
 using ConnectionManager.Core.Services.Interfaces;
 using Microsoft.Extensions.Logging;
 using Spectre.Console;
@@ -32,22 +33,7 @@ internal sealed class CliService : ICliService
 
         while (!cancellationToken.IsCancellationRequested)
         {
-            var choice = AnsiConsole.Prompt(
-                new SelectionPrompt<string>()
-                    .Title("What would you like to do?")
-                    .AddChoices("List Connection Profiles", "Exit")
-            );
-
-            switch (choice)
-            {
-                case "List Connection Profiles":
-                    await DisplayConnectionProfilesAsync(cancellationToken);
-                    break;
-                case "Exit":
-                    _logger.LogDebug("User requested exit");
-                    AnsiConsole.MarkupLine("[green]Goodbye![/]");
-                    return;
-            }
+            await ShowMainMenuAsync(cancellationToken);
         }
     }
 
@@ -55,42 +41,112 @@ internal sealed class CliService : ICliService
 
     #region Private Methods
 
-    private async Task DisplayConnectionProfilesAsync(CancellationToken cancellationToken)
+    private async Task ShowMainMenuAsync(CancellationToken cancellationToken)
     {
-        _logger.LogDebug("Displaying connection profiles");
-
         var result = await _connectionProfilesService.GetAllAsync(cancellationToken);
 
         if (result.IsError)
         {
             foreach (var error in result.Errors)
             {
-                AnsiConsole.MarkupLine($"[red]Error: {error.Description}[/]");
+                AnsiConsole.MarkupLine($"[red]Error loading profiles: {error.Description}[/]");
             }
+            AnsiConsole.MarkupLine("[yellow]Press any key to continue...[/]");
+            Console.ReadKey();
             return;
         }
 
         var profiles = result.Value;
 
-        if (profiles.Count == 0)
+        var prompt = new SelectionPrompt<string>()
+            .Title(
+                profiles.Count > 0
+                    ? "[bold]Select a connection profile or choose an action:[/]"
+                    : "[bold]No profiles found. Choose an action:[/]"
+            )
+            .PageSize(10)
+            .MoreChoicesText("[grey](Move up and down to reveal more choices)[/]");
+
+        if (profiles.Count > 0)
         {
-            AnsiConsole.MarkupLine("[yellow]No connection profiles found.[/]");
-            AnsiConsole.WriteLine();
-            return;
+            foreach (var profile in profiles)
+            {
+                prompt.AddChoice($"[cyan]{profile.Name}[/] [dim]({profile.ConnectionType})[/]");
+            }
+            prompt.AddChoiceGroup(
+                "[dim]Actions[/]",
+                new[] { "[green]Add New Profile[/]", "[red]Exit[/]" }
+            );
+        }
+        else
+        {
+            prompt.AddChoice("[green]Add New Profile[/]");
+            prompt.AddChoice("[red]Exit[/]");
         }
 
-        var table = new Table();
-        table.AddColumn("[blue]Name[/]");
-        table.AddColumn("[blue]Connection Type[/]");
-        table.AddColumn("[blue]ID[/]");
+        var selection = AnsiConsole.Prompt(prompt);
 
-        foreach (var profile in profiles)
+        if (selection == "[green]Add New Profile[/]")
         {
-            table.AddRow(profile.Name, profile.ConnectionType.ToString(), profile.Id.ToString());
+            AnsiConsole.MarkupLine("[yellow]Feature not implemented yet[/]");
+            AnsiConsole.MarkupLine("[dim]Press any key to continue...[/]");
+            Console.ReadKey();
+        }
+        else if (selection == "[red]Exit[/]")
+        {
+            _logger.LogDebug("User requested exit");
+            AnsiConsole.MarkupLine("[green]Goodbye![/]");
+            Environment.Exit(0);
+        }
+        else if (!string.IsNullOrWhiteSpace(selection))
+        {
+            var selectedProfile = profiles.FirstOrDefault(p =>
+                $"[cyan]{p.Name}[/] [dim]({p.ConnectionType})[/]" == selection
+            );
+
+            if (selectedProfile != null)
+            {
+                await ShowProfileOperationsAsync(selectedProfile, cancellationToken);
+            }
+        }
+    }
+
+    private Task ShowProfileOperationsAsync(
+        ConnectionProfileDTO profile,
+        CancellationToken cancellationToken
+    )
+    {
+        var choice = AnsiConsole.Prompt(
+            new SelectionPrompt<string>()
+                .Title(
+                    $"[bold]Operations for '[cyan]{profile.Name}[/]' ({profile.ConnectionType}):[/]"
+                )
+                .AddChoices(
+                    "[green]Open Connection[/]",
+                    "[blue]Edit Profile[/]",
+                    "[red]Delete Profile[/]",
+                    "[dim]Back to Main Menu[/]"
+                )
+        );
+
+        switch (choice)
+        {
+            case "[green]Open Connection[/]":
+                AnsiConsole.MarkupLine("[yellow]Feature not implemented yet[/]");
+                break;
+            case "[blue]Edit Profile[/]":
+                AnsiConsole.MarkupLine("[yellow]Feature not implemented yet[/]");
+                break;
+            case "[red]Delete Profile[/]":
+                AnsiConsole.MarkupLine("[yellow]Feature not implemented yet[/]");
+                break;
+            case "[dim]Back to Main Menu[/]":
+                return Task.CompletedTask;
         }
 
-        AnsiConsole.Write(table);
-        AnsiConsole.WriteLine();
+        AnsiConsole.MarkupLine("[dim]Press any key to continue...[/]");
+        Console.ReadKey();
+        return Task.CompletedTask;
     }
 
     #endregion
