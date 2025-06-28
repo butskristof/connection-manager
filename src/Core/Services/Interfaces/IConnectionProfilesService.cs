@@ -5,7 +5,9 @@ namespace ConnectionManager.Core.Services.Interfaces;
 
 public interface IConnectionProfilesService
 {
-    Task<ErrorOr<List<ConnectionProfileDTO>>> GetAllAsync(CancellationToken cancellationToken = default);
+    Task<ErrorOr<List<ConnectionProfileDTO>>> GetAllAsync(
+        CancellationToken cancellationToken = default
+    );
     Task<ErrorOr<ConnectionProfileDTO>> GetByIdAsync(
         Guid id,
         CancellationToken cancellationToken = default
