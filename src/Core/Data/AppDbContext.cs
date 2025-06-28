@@ -1,4 +1,4 @@
-using ConnectionManager.Core.Constants;
+using ConnectionManager.Core.Common.Constants;
 using ConnectionManager.Core.Models;
 using Microsoft.EntityFrameworkCore;
 

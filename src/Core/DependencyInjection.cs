@@ -1,6 +1,7 @@
 using ConnectionManager.Core.Data;
 using ConnectionManager.Core.Services.Implementations;
 using ConnectionManager.Core.Services.Interfaces;
+using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -14,6 +15,11 @@ public static class DependencyInjection
     )
     {
         services.AddPersistence(connectionString).AddServices();
+
+        services.AddValidatorsFromAssemblyContaining(
+            typeof(DependencyInjection),
+            includeInternalTypes: true
+        );
 
         return services;
     }
@@ -30,9 +36,11 @@ public static class DependencyInjection
 
     private static IServiceCollection AddServices(this IServiceCollection services)
     {
-        services
-            .AddScoped<IValidatorFactory, ValidatorFactory>()
-            .AddScoped<IConnectionProfilesService, ConnectionProfilesService>();
+        // internal services
+        services.AddScoped<IValidationService, ValidationService>();
+
+        // external services
+        services.AddScoped<IConnectionProfilesService, ConnectionProfilesService>();
 
         return services;
     }

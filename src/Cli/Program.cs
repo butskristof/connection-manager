@@ -16,10 +16,23 @@ using var scope = host.Services.CreateScope();
 var connectionProfilesService =
     scope.ServiceProvider.GetRequiredService<IConnectionProfilesService>();
 
-var profiles = await connectionProfilesService.GetAllAsync();
-Console.WriteLine($"Found {profiles.Count} connection profiles:");
+var profilesResult = await connectionProfilesService.GetAllAsync();
 
-foreach (var profile in profiles)
+if (profilesResult.IsError)
 {
-    Console.WriteLine($"- {profile.Name} ({profile.ConnectionType})");
+    Console.WriteLine("Failed to retrieve connection profiles:");
+    foreach (var error in profilesResult.Errors)
+    {
+        Console.WriteLine($"- {error.Code}: {error.Description}");
+    }
+}
+else
+{
+    var profiles = profilesResult.Value;
+    Console.WriteLine($"Found {profiles.Count} connection profiles:");
+
+    foreach (var profile in profiles)
+    {
+        Console.WriteLine($"- {profile.Name} ({profile.ConnectionType})");
+    }
 }

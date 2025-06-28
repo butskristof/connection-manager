@@ -1,4 +1,4 @@
-namespace ConnectionManager.Core.Constants;
+namespace ConnectionManager.Core.Common.Constants;
 
 internal static class ApplicationConstants
 {
