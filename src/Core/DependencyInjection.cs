@@ -1,4 +1,6 @@
 using ConnectionManager.Core.Data;
+using ConnectionManager.Core.Services.Implementations;
+using ConnectionManager.Core.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -11,7 +13,7 @@ public static class DependencyInjection
         string connectionString
     )
     {
-        services.AddPersistence(connectionString);
+        services.AddPersistence(connectionString).AddServices();
 
         return services;
     }
@@ -22,6 +24,15 @@ public static class DependencyInjection
     )
     {
         services.AddDbContext<AppDbContext>(builder => builder.UseSqlite(connectionString));
+
+        return services;
+    }
+
+    private static IServiceCollection AddServices(this IServiceCollection services)
+    {
+        services
+            .AddScoped<IValidatorFactory, ValidatorFactory>()
+            .AddScoped<IConnectionProfilesService, ConnectionProfilesService>();
 
         return services;
     }

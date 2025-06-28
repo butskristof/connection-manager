@@ -1,6 +1,5 @@
 using ConnectionManager.Core;
-using ConnectionManager.Core.Data;
-using Microsoft.EntityFrameworkCore;
+using ConnectionManager.Core.Services.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -14,9 +13,10 @@ var host = builder.Build();
 
 // Test database connection
 using var scope = host.Services.CreateScope();
-var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+var connectionProfilesService =
+    scope.ServiceProvider.GetRequiredService<IConnectionProfilesService>();
 
-var profiles = await dbContext.ConnectionProfiles.ToListAsync();
+var profiles = await connectionProfilesService.GetAllAsync();
 Console.WriteLine($"Found {profiles.Count} connection profiles:");
 
 foreach (var profile in profiles)
