@@ -15,6 +15,6 @@ builder.Services.AddCore(connectionString).AddCli();
 
 var host = builder.Build();
 using var scope = host.Services.CreateScope();
-var cliService = scope.ServiceProvider.GetRequiredService<ICliService>();
+var consoleUI = scope.ServiceProvider.GetRequiredService<ConsoleUI>();
 
-await cliService.RunAsync();
+await consoleUI.RunAsync();

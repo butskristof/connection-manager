@@ -5,17 +5,14 @@ using Spectre.Console;
 
 namespace ConnectionManager.Cli.Services;
 
-internal sealed class CliService : ICliService
+internal sealed class Cli
 {
     #region Construction
 
-    private readonly ILogger<CliService> _logger;
+    private readonly ILogger<Cli> _logger;
     private readonly IConnectionProfilesService _connectionProfilesService;
 
-    public CliService(
-        ILogger<CliService> logger,
-        IConnectionProfilesService connectionProfilesService
-    )
+    public Cli(ILogger<Cli> logger, IConnectionProfilesService connectionProfilesService)
     {
         _logger = logger;
         _connectionProfilesService = connectionProfilesService;
@@ -32,9 +29,7 @@ internal sealed class CliService : ICliService
         AnsiConsole.Write(new FigletText("Connection Manager").LeftJustified().Color(Color.Blue));
 
         while (!cancellationToken.IsCancellationRequested)
-        {
             await ShowMainMenuAsync(cancellationToken);
-        }
     }
 
     #endregion
@@ -47,10 +42,11 @@ internal sealed class CliService : ICliService
 
         if (result.IsError)
         {
+            AnsiConsole.MarkupLine("[red]Error loading profiles:[/]");
             foreach (var error in result.Errors)
-            {
-                AnsiConsole.MarkupLine($"[red]Error loading profiles: {error.Description}[/]");
-            }
+                AnsiConsole.MarkupLine($"[red]  - {error.Description}[/]");
+            AnsiConsole.WriteLine();
+
             AnsiConsole.MarkupLine("[yellow]Press any key to continue...[/]");
             Console.ReadKey();
             return;
@@ -67,22 +63,11 @@ internal sealed class CliService : ICliService
             .PageSize(10)
             .MoreChoicesText("[grey](Move up and down to reveal more choices)[/]");
 
-        if (profiles.Count > 0)
-        {
-            foreach (var profile in profiles)
-            {
-                prompt.AddChoice($"[cyan]{profile.Name}[/] [dim]({profile.ConnectionType})[/]");
-            }
-            prompt.AddChoiceGroup(
-                "[dim]Actions[/]",
-                new[] { "[green]Add New Profile[/]", "[red]Exit[/]" }
-            );
-        }
-        else
-        {
-            prompt.AddChoice("[green]Add New Profile[/]");
-            prompt.AddChoice("[red]Exit[/]");
-        }
+        foreach (var profile in profiles)
+            prompt.AddChoice($"[cyan]{profile.Name}[/] [dim]({profile.ConnectionType})[/]");
+
+        prompt.AddChoice("[green]Add New Profile[/]");
+        prompt.AddChoice("[red]Exit[/]");
 
         var selection = AnsiConsole.Prompt(prompt);
 
@@ -105,13 +90,11 @@ internal sealed class CliService : ICliService
             );
 
             if (selectedProfile != null)
-            {
                 await ShowProfileOperationsAsync(selectedProfile, cancellationToken);
-            }
         }
     }
 
-    private Task ShowProfileOperationsAsync(
+    private static Task ShowProfileOperationsAsync(
         ConnectionProfileDTO profile,
         CancellationToken cancellationToken
     )
