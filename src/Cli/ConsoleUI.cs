@@ -284,7 +284,7 @@ internal sealed class ConsoleUI
             .Spinner(Spinner.Known.Dots)
             .StartAsync(
                 "Creating connection profile...",
-                async ctx =>
+                async _ =>
                 {
                     // Create the request
                     var request = new CreateConnectionProfileRequest(name, connectionType);
@@ -341,7 +341,7 @@ internal sealed class ConsoleUI
             .Spinner(Spinner.Known.Dots)
             .StartAsync(
                 "Updating connection profile...",
-                async ctx =>
+                async _ =>
                 {
                     // Create the request
                     var request = new UpdateConnectionProfileRequest(
@@ -411,7 +411,7 @@ internal sealed class ConsoleUI
             .Spinner(Spinner.Known.Dots)
             .StartAsync(
                 "Deleting connection profile...",
-                async ctx =>
+                async _ =>
                 {
                     // Call the service
                     var result = await _connectionProfilesService.DeleteAsync(
@@ -438,17 +438,28 @@ internal sealed class ConsoleUI
 
     private void ConnectToProfile(ConnectionProfileDTO connectionProfile)
     {
-        var request = new SshConnectionRequest(
-            Host: "192.168.10.24",
-            Port: 1122,
-            Username: "host",
-            KeyPath: null,
-            Password: "test"
-        );
+        switch (connectionProfile.ConnectionType)
+        {
+            case ConnectionType.SSH:
+            {
+                var request = new SshConnectionRequest(
+                    Host: "192.168.10.24",
+                    Port: 1122,
+                    Username: "host",
+                    KeyPath: null,
+                    Password: "test"
+                );
 
-        AnsiConsole.MarkupLine($"[green]Connecting to {connectionProfile.Name}...[/]");
-        _sshConnector.Connect(request);
-        ExitApplication();
+                AnsiConsole.MarkupLine($"[green]Connecting to {connectionProfile.Name}...[/]");
+                _sshConnector.Connect(request);
+                ExitApplication();
+                break;
+            }
+            case ConnectionType.Unknown:
+            default:
+                ShowFeatureNotImplemented();
+                break;
+        }
     }
 
     private static void ExitApplication()
