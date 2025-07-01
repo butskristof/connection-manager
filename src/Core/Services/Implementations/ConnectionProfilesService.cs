@@ -103,6 +103,9 @@ internal sealed class ConnectionProfilesService : IConnectionProfilesService
             Id = Guid.NewGuid(),
             Name = request.Name,
             ConnectionType = request.ConnectionType,
+            Host = request.Host,
+            Port = request.Port,
+            Username = request.Username,
         };
 
         _dbContext.ConnectionProfiles.Add(entity);
@@ -157,6 +160,9 @@ internal sealed class ConnectionProfilesService : IConnectionProfilesService
 
         entity.Name = request.Name;
         entity.ConnectionType = request.ConnectionType;
+        entity.Host = request.Host;
+        entity.Port = request.Port;
+        entity.Username = request.Username;
 
         await _dbContext.SaveChangesAsync(cancellationToken);
 

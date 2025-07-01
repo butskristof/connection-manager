@@ -14,5 +14,9 @@ internal sealed class ConnectionProfileConfiguration : IEntityTypeConfiguration<
         builder.HasIndex(cp => cp.Name).IsUnique();
 
         builder.Property(cp => cp.ConnectionType).IsRequired();
+
+        builder.Property(cp => cp.Host).IsRequired();
+        builder.Property(cp => cp.Port).IsRequired();
+        builder.Property(cp => cp.Username).IsRequired();
     }
 }
