@@ -1,3 +1,4 @@
+using ConnectionManager.Cli.Services.Ssh;
 using ConnectionManager.Core.Models;
 using ConnectionManager.Core.Services.Contracts.ConnectionProfiles;
 using ConnectionManager.Core.Services.Interfaces;
@@ -5,7 +6,7 @@ using ErrorOr;
 using Microsoft.Extensions.Logging;
 using Spectre.Console;
 
-namespace ConnectionManager.Cli.Services;
+namespace ConnectionManager.Cli;
 
 internal sealed class ConsoleUI
 {
@@ -13,14 +14,17 @@ internal sealed class ConsoleUI
 
     private readonly ILogger<ConsoleUI> _logger;
     private readonly IConnectionProfilesService _connectionProfilesService;
+    private readonly ISshConnector _sshConnector;
 
     public ConsoleUI(
         ILogger<ConsoleUI> logger,
-        IConnectionProfilesService connectionProfilesService
+        IConnectionProfilesService connectionProfilesService,
+        ISshConnector sshConnector
     )
     {
         _logger = logger;
         _connectionProfilesService = connectionProfilesService;
+        _sshConnector = sshConnector;
     }
 
     #endregion
@@ -96,8 +100,7 @@ internal sealed class ConsoleUI
                 await CreateConnectionProfileAsync(cancellationToken);
                 break;
             case MainMenuAction.Exit:
-                AnsiConsole.MarkupLine("[green]Goodbye![/]");
-                Environment.Exit(0);
+                ExitApplication();
                 break;
             default:
                 AnsiConsole.MarkupLine("[red]Unknown action selected. Please try again.[/]");
@@ -145,7 +148,7 @@ internal sealed class ConsoleUI
             case ConnectionProfileMenuAction.BackToMainMenu:
                 return;
             case ConnectionProfileMenuAction.Connect:
-                ShowFeatureNotImplemented();
+                ConnectToProfile(connectionProfile);
                 break;
             case ConnectionProfileMenuAction.Edit:
                 await UpdateConnectionProfileAsync(connectionProfile, cancellationToken);
@@ -281,7 +284,7 @@ internal sealed class ConsoleUI
             .Spinner(Spinner.Known.Dots)
             .StartAsync(
                 "Creating connection profile...",
-                async ctx =>
+                async _ =>
                 {
                     // Create the request
                     var request = new CreateConnectionProfileRequest(name, connectionType);
@@ -338,7 +341,7 @@ internal sealed class ConsoleUI
             .Spinner(Spinner.Known.Dots)
             .StartAsync(
                 "Updating connection profile...",
-                async ctx =>
+                async _ =>
                 {
                     // Create the request
                     var request = new UpdateConnectionProfileRequest(
@@ -408,7 +411,7 @@ internal sealed class ConsoleUI
             .Spinner(Spinner.Known.Dots)
             .StartAsync(
                 "Deleting connection profile...",
-                async ctx =>
+                async _ =>
                 {
                     // Call the service
                     var result = await _connectionProfilesService.DeleteAsync(
@@ -432,6 +435,39 @@ internal sealed class ConsoleUI
     }
 
     #endregion
+
+    private void ConnectToProfile(ConnectionProfileDTO connectionProfile)
+    {
+        switch (connectionProfile.ConnectionType)
+        {
+            case ConnectionType.SSH:
+            {
+                var request = new SshConnectionRequest(
+                    Host: "192.168.10.24",
+                    Port: 1122,
+                    Username: "host",
+                    KeyPath: null,
+                    Password: "test"
+                );
+
+                AnsiConsole.MarkupLine($"[green]Connecting to {connectionProfile.Name}...[/]");
+                _sshConnector.Connect(request);
+                ExitApplication();
+                break;
+            }
+            case ConnectionType.Unknown:
+            default:
+                ShowFeatureNotImplemented();
+                break;
+        }
+    }
+
+    private static void ExitApplication()
+    {
+        AnsiConsole.WriteLine();
+        AnsiConsole.MarkupLine("[green]Goodbye![/]");
+        Environment.Exit(0);
+    }
 
     private static void ShowFeatureNotImplemented()
     {
