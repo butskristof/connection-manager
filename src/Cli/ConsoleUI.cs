@@ -100,8 +100,7 @@ internal sealed class ConsoleUI
                 await CreateConnectionProfileAsync(cancellationToken);
                 break;
             case MainMenuAction.Exit:
-                AnsiConsole.MarkupLine("[green]Goodbye![/]");
-                Environment.Exit(0);
+                ExitApplication();
                 break;
             default:
                 AnsiConsole.MarkupLine("[red]Unknown action selected. Please try again.[/]");
@@ -449,6 +448,14 @@ internal sealed class ConsoleUI
 
         AnsiConsole.MarkupLine($"[green]Connecting to {connectionProfile.Name}...[/]");
         _sshConnector.Connect(request);
+        ExitApplication();
+    }
+
+    private static void ExitApplication()
+    {
+        AnsiConsole.WriteLine();
+        AnsiConsole.MarkupLine("[green]Goodbye![/]");
+        Environment.Exit(0);
     }
 
     private static void ShowFeatureNotImplemented()

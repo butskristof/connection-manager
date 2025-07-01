@@ -20,12 +20,10 @@ internal sealed class SshConnector : ISshConnector
         {
             using var process = Process.Start(startInfo);
             process?.WaitForExit();
-            // return process?.ExitCode ?? -1;
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"SSH launch failed: {ex.Message}");
-            // return -1;
+            Console.WriteLine($"SSH session failed: {ex.Message}");
         }
     }
 
