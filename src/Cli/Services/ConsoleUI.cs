@@ -125,8 +125,6 @@ internal sealed class ConsoleUI
         { ConnectionProfileMenuAction.BackToMainMenu, "Back to main menu" },
     };
 
-    #region connection profile menu
-
     private async Task ShowConnectionProfileMenu(
         ConnectionProfileDTO connectionProfile,
         CancellationToken cancellationToken
@@ -163,8 +161,6 @@ internal sealed class ConsoleUI
                 break;
         }
     }
-
-    #endregion
 
     #region shared input methods
 
@@ -422,39 +418,11 @@ internal sealed class ConsoleUI
 
                     AnsiConsole.WriteLine();
 
-                    if (result.IsError)
-                    {
-                        AnsiConsole.MarkupLine("[red]Failed to delete connection profile:[/]");
-                        AnsiConsole.WriteLine();
-
-                        foreach (var error in result.Errors)
-                        {
-                            switch (error.Type)
-                            {
-                                case ErrorType.NotFound:
-                                    AnsiConsole.MarkupLine(
-                                        $"[yellow]Not Found:[/] {error.Description}"
-                                    );
-                                    break;
-                                case ErrorType.Conflict:
-                                    AnsiConsole.MarkupLine(
-                                        $"[orange1]Conflict:[/] {error.Description}"
-                                    );
-                                    break;
-                                default:
-                                    AnsiConsole.MarkupLine(
-                                        $"[red]Error ({error.Code}):[/] {error.Description}"
-                                    );
-                                    break;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        AnsiConsole.MarkupLine(
-                            $"[green]✓ Connection profile '{connectionProfile.Name}' deleted successfully![/]"
-                        );
-                    }
+                    DisplayErrorOrResult(
+                        result,
+                        $"Connection profile '{connectionProfile.Name}' deleted successfully!",
+                        objectName: "delete connection profile"
+                    );
                 }
             );
 
