@@ -1,5 +1,5 @@
+using ConnectionManager.Cli;
 using ConnectionManager.Cli.Extensions;
-using ConnectionManager.Cli.Services;
 using ConnectionManager.Core;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
