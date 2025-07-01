@@ -6,4 +6,10 @@ public sealed class ConnectionProfile
 
     public required string Name { get; set; }
     public required ConnectionType ConnectionType { get; set; }
+
+    public required string Host { get; set; }
+    public required ushort Port { get; set; }
+    public required string Username { get; set; }
+    public string? KeyPath { get; set; }
+    public string? Password { get; set; }
 }

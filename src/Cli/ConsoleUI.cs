@@ -219,6 +219,100 @@ internal sealed class ConsoleUI
         return AnsiConsole.Prompt(prompt);
     }
 
+    private static string PromptForHost(string? defaultValue = null)
+    {
+        var prompt = new TextPrompt<string>("Enter [blue]host[/] (IP address or hostname):")
+            .PromptStyle("cyan")
+            .ValidationErrorMessage("[red]Host cannot be empty[/]")
+            .Validate(input =>
+            {
+                if (string.IsNullOrWhiteSpace(input))
+                    return ValidationResult.Error("[red]Host is required[/]");
+
+                return ValidationResult.Success();
+            });
+
+        if (!string.IsNullOrWhiteSpace(defaultValue))
+        {
+            prompt = prompt.DefaultValue(defaultValue).ShowDefaultValue(true);
+        }
+
+        return AnsiConsole.Prompt(prompt);
+    }
+
+    private static ushort PromptForPort(ushort? defaultValue = null)
+    {
+        var prompt = new TextPrompt<ushort>("Enter [blue]port[/]:")
+            .PromptStyle("cyan")
+            .ValidationErrorMessage("[red]Please enter a valid port number (1-65535)[/]")
+            .Validate(port =>
+            {
+                if (port is < 1 or > 65535)
+                    return ValidationResult.Error("[red]Port must be between 1 and 65535[/]");
+
+                return ValidationResult.Success();
+            });
+
+        if (defaultValue.HasValue)
+        {
+            prompt = prompt.DefaultValue(defaultValue.Value).ShowDefaultValue(true);
+        }
+
+        return AnsiConsole.Prompt(prompt);
+    }
+
+    private static string PromptForUsername(string? defaultValue = null)
+    {
+        var prompt = new TextPrompt<string>("Enter [blue]username[/]:")
+            .PromptStyle("cyan")
+            .ValidationErrorMessage("[red]Username cannot be empty[/]")
+            .Validate(input =>
+            {
+                if (string.IsNullOrWhiteSpace(input))
+                    return ValidationResult.Error("[red]Username is required[/]");
+
+                return ValidationResult.Success();
+            });
+
+        if (!string.IsNullOrWhiteSpace(defaultValue))
+        {
+            prompt = prompt.DefaultValue(defaultValue).ShowDefaultValue(true);
+        }
+
+        return AnsiConsole.Prompt(prompt);
+    }
+
+    private static string? PromptForKeyPath(string? defaultValue = null)
+    {
+        var prompt = new TextPrompt<string>("Enter [blue]private key path[/] (optional):")
+            .PromptStyle("cyan")
+            .AllowEmpty();
+
+        if (!string.IsNullOrWhiteSpace(defaultValue))
+        {
+            prompt = prompt.DefaultValue(defaultValue).ShowDefaultValue(true);
+        }
+
+        var result = AnsiConsole.Prompt(prompt);
+        return string.IsNullOrWhiteSpace(result) ? null : result;
+    }
+
+    private static string? PromptForPassword(string? defaultValue = null)
+    {
+        var prompt = new TextPrompt<string>("Enter [blue]password[/] (optional):")
+            .PromptStyle("cyan")
+            .Secret()
+            .AllowEmpty();
+
+        if (!string.IsNullOrWhiteSpace(defaultValue))
+        {
+            prompt = prompt.DefaultValue(defaultValue).ShowDefaultValue(true);
+        }
+
+        var result = AnsiConsole.Prompt(prompt);
+        return string.IsNullOrWhiteSpace(result) ? null : result;
+    }
+
     private static void DisplayErrorOrResult<T>(
         ErrorOr<T> result,
         string successMessage,
@@ -279,6 +373,21 @@ internal sealed class ConsoleUI
         // Get connection type selection
         var connectionType = PromptForConnectionType();
 
+        // Get host information
+        var host = PromptForHost();
+
+        // Get port information
+        var port = PromptForPort();
+
+        // Get username information
+        var username = PromptForUsername();
+
+        // Get optional key path
+        var keyPath = PromptForKeyPath();
+
+        // Get optional password
+        var password = PromptForPassword();
+
         await AnsiConsole
             .Status()
             .Spinner(Spinner.Known.Dots)
@@ -287,7 +396,15 @@ internal sealed class ConsoleUI
                 async _ =>
                 {
                     // Create the request
-                    var request = new CreateConnectionProfileRequest(name, connectionType);
+                    var request = new CreateConnectionProfileRequest(
+                        name,
+                        connectionType,
+                        host,
+                        port,
+                        username,
+                        keyPath,
+                        password
+                    );
 
                     // Call the service
                     var result = await _connectionProfilesService.CreateAsync(
@@ -303,6 +420,19 @@ internal sealed class ConsoleUI
                         profile =>
                             $"[bold]Name:[/] {profile.Name}\n"
                             + $"[bold]Type:[/] {profile.ConnectionType}\n"
+                            + $"[bold]Host:[/] {profile.Host}\n"
+                            + $"[bold]Port:[/] {profile.Port}\n"
+                            + $"[bold]Username:[/] {profile.Username}\n"
+                            + (
+                                profile.KeyPath != null
+                                    ? $"[bold]Key Path:[/] {profile.KeyPath}\n"
+                                    : ""
+                            )
+                            + (
+                                profile.Password != null
+                                    ? $"[bold]Password:[/] {profile.Password}\n"
+                                    : ""
+                            )
                             + $"[bold]ID:[/] [dim]{profile.Id}[/]",
                         "create connection profile"
                     );
@@ -336,6 +466,21 @@ internal sealed class ConsoleUI
         // Get connection type selection with current value as default
         var connectionType = PromptForConnectionType(connectionProfile.ConnectionType);
 
+        // Get host information with current value as default
+        var host = PromptForHost(connectionProfile.Host);
+
+        // Get port information with current value as default
+        var port = PromptForPort(connectionProfile.Port);
+
+        // Get username information with current value as default
+        var username = PromptForUsername(connectionProfile.Username);
+
+        // Get optional key path with current value as default
+        var keyPath = PromptForKeyPath(connectionProfile.KeyPath);
+
+        // Get optional password with current value as default
+        var password = PromptForPassword(connectionProfile.Password);
+
         await AnsiConsole
             .Status()
             .Spinner(Spinner.Known.Dots)
@@ -347,7 +492,12 @@ internal sealed class ConsoleUI
                     var request = new UpdateConnectionProfileRequest(
                         connectionProfile.Id,
                         name,
-                        connectionType
+                        connectionType,
+                        host,
+                        port,
+                        username,
+                        keyPath,
+                        password
                     );
 
                     // Call the service
@@ -364,6 +514,19 @@ internal sealed class ConsoleUI
                         profile =>
                             $"[bold]Name:[/] {profile.Name}\n"
                             + $"[bold]Type:[/] {profile.ConnectionType}\n"
+                            + $"[bold]Host:[/] {profile.Host}\n"
+                            + $"[bold]Port:[/] {profile.Port}\n"
+                            + $"[bold]Username:[/] {profile.Username}\n"
+                            + (
+                                profile.KeyPath != null
+                                    ? $"[bold]Key Path:[/] {profile.KeyPath}\n"
+                                    : ""
+                            )
+                            + (
+                                profile.Password != null
+                                    ? $"[bold]Password:[/] {profile.Password}\n"
+                                    : ""
+                            )
                             + $"[bold]ID:[/] [dim]{profile.Id}[/]",
                         "update connection profile"
                     );
@@ -443,11 +606,11 @@ internal sealed class ConsoleUI
             case ConnectionType.SSH:
             {
                 var request = new SshConnectionRequest(
-                    Host: "192.168.10.24",
-                    Port: 1122,
-                    Username: "host",
-                    KeyPath: null,
-                    Password: "test"
+                    Host: connectionProfile.Host,
+                    Port: connectionProfile.Port,
+                    Username: connectionProfile.Username,
+                    KeyPath: connectionProfile.KeyPath,
+                    Password: connectionProfile.Password
                 );
 
                 AnsiConsole.MarkupLine($"[green]Connecting to {connectionProfile.Name}...[/]");
