@@ -423,8 +423,16 @@ internal sealed class ConsoleUI
                             + $"[bold]Host:[/] {profile.Host}\n"
                             + $"[bold]Port:[/] {profile.Port}\n"
                             + $"[bold]Username:[/] {profile.Username}\n"
-                            + (profile.KeyPath != null ? $"[bold]Key Path:[/] {profile.KeyPath}\n" : "")
-                            + (profile.Password != null ? $"[bold]Password:[/] {profile.Password}\n" : "")
+                            + (
+                                profile.KeyPath != null
+                                    ? $"[bold]Key Path:[/] {profile.KeyPath}\n"
+                                    : ""
+                            )
+                            + (
+                                profile.Password != null
+                                    ? $"[bold]Password:[/] {profile.Password}\n"
+                                    : ""
+                            )
                             + $"[bold]ID:[/] [dim]{profile.Id}[/]",
                         "create connection profile"
                     );
@@ -509,8 +517,16 @@ internal sealed class ConsoleUI
                             + $"[bold]Host:[/] {profile.Host}\n"
                             + $"[bold]Port:[/] {profile.Port}\n"
                             + $"[bold]Username:[/] {profile.Username}\n"
-                            + (profile.KeyPath != null ? $"[bold]Key Path:[/] {profile.KeyPath}\n" : "")
-                            + (profile.Password != null ? $"[bold]Password:[/] {profile.Password}\n" : "")
+                            + (
+                                profile.KeyPath != null
+                                    ? $"[bold]Key Path:[/] {profile.KeyPath}\n"
+                                    : ""
+                            )
+                            + (
+                                profile.Password != null
+                                    ? $"[bold]Password:[/] {profile.Password}\n"
+                                    : ""
+                            )
                             + $"[bold]ID:[/] [dim]{profile.Id}[/]",
                         "update connection profile"
                     );
