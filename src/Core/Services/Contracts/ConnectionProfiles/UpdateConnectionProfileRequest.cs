@@ -10,7 +10,9 @@ public sealed record UpdateConnectionProfileRequest(
     ConnectionType ConnectionType,
     string Host,
     ushort Port,
-    string Username
+    string Username,
+    string? KeyPath,
+    string? Password
 );
 
 internal sealed class UpdateConnectionProfileRequestValidator
@@ -70,5 +72,21 @@ internal sealed class UpdateConnectionProfileRequestValidator
             .WithMessage(
                 $"Username cannot exceed {ApplicationConstants.DefaultMaxStringLength} characters"
             );
+
+        RuleFor(r => r.KeyPath)
+            .MaximumLength(ApplicationConstants.DefaultMaxStringLength)
+            .WithErrorCode(ErrorCodes.MaxLength)
+            .WithMessage(
+                $"KeyPath cannot exceed {ApplicationConstants.DefaultMaxStringLength} characters"
+            )
+            .When(r => r.KeyPath is not null);
+
+        RuleFor(r => r.Password)
+            .MaximumLength(ApplicationConstants.DefaultMaxStringLength)
+            .WithErrorCode(ErrorCodes.MaxLength)
+            .WithMessage(
+                $"Password cannot exceed {ApplicationConstants.DefaultMaxStringLength} characters"
+            )
+            .When(r => r.Password is not null);
     }
 }

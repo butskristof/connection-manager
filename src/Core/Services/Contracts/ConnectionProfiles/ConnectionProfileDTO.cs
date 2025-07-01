@@ -8,7 +8,9 @@ public sealed record ConnectionProfileDTO(
     ConnectionType ConnectionType,
     string Host,
     ushort Port,
-    string Username
+    string Username,
+    string? KeyPath,
+    string? Password
 )
 {
     public ConnectionProfileDTO(ConnectionProfile connectionProfile)
@@ -18,6 +20,8 @@ public sealed record ConnectionProfileDTO(
             connectionProfile.ConnectionType,
             connectionProfile.Host,
             connectionProfile.Port,
-            connectionProfile.Username
+            connectionProfile.Username,
+            connectionProfile.KeyPath,
+            connectionProfile.Password
         ) { }
 }

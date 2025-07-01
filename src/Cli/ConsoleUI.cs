@@ -282,6 +282,37 @@ internal sealed class ConsoleUI
         return AnsiConsole.Prompt(prompt);
     }
 
+    private static string? PromptForKeyPath(string? defaultValue = null)
+    {
+        var prompt = new TextPrompt<string>("Enter [blue]private key path[/] (optional):")
+            .PromptStyle("cyan")
+            .AllowEmpty();
+
+        if (!string.IsNullOrWhiteSpace(defaultValue))
+        {
+            prompt = prompt.DefaultValue(defaultValue).ShowDefaultValue(true);
+        }
+
+        var result = AnsiConsole.Prompt(prompt);
+        return string.IsNullOrWhiteSpace(result) ? null : result;
+    }
+
+    private static string? PromptForPassword(string? defaultValue = null)
+    {
+        var prompt = new TextPrompt<string>("Enter [blue]password[/] (optional):")
+            .PromptStyle("cyan")
+            .Secret()
+            .AllowEmpty();
+
+        if (!string.IsNullOrWhiteSpace(defaultValue))
+        {
+            prompt = prompt.DefaultValue(defaultValue).ShowDefaultValue(true);
+        }
+
+        var result = AnsiConsole.Prompt(prompt);
+        return string.IsNullOrWhiteSpace(result) ? null : result;
+    }
+
     private static void DisplayErrorOrResult<T>(
         ErrorOr<T> result,
         string successMessage,
@@ -351,6 +382,12 @@ internal sealed class ConsoleUI
         // Get username information
         var username = PromptForUsername();
 
+        // Get optional key path
+        var keyPath = PromptForKeyPath();
+
+        // Get optional password
+        var password = PromptForPassword();
+
         await AnsiConsole
             .Status()
             .Spinner(Spinner.Known.Dots)
@@ -364,7 +401,9 @@ internal sealed class ConsoleUI
                         connectionType,
                         host,
                         port,
-                        username
+                        username,
+                        keyPath,
+                        password
                     );
 
                     // Call the service
@@ -384,6 +423,8 @@ internal sealed class ConsoleUI
                             + $"[bold]Host:[/] {profile.Host}\n"
                             + $"[bold]Port:[/] {profile.Port}\n"
                             + $"[bold]Username:[/] {profile.Username}\n"
+                            + (profile.KeyPath != null ? $"[bold]Key Path:[/] {profile.KeyPath}\n" : "")
+                            + (profile.Password != null ? $"[bold]Password:[/] {profile.Password}\n" : "")
                             + $"[bold]ID:[/] [dim]{profile.Id}[/]",
                         "create connection profile"
                     );
@@ -426,6 +467,12 @@ internal sealed class ConsoleUI
         // Get username information with current value as default
         var username = PromptForUsername(connectionProfile.Username);
 
+        // Get optional key path with current value as default
+        var keyPath = PromptForKeyPath(connectionProfile.KeyPath);
+
+        // Get optional password with current value as default
+        var password = PromptForPassword(connectionProfile.Password);
+
         await AnsiConsole
             .Status()
             .Spinner(Spinner.Known.Dots)
@@ -440,7 +487,9 @@ internal sealed class ConsoleUI
                         connectionType,
                         host,
                         port,
-                        username
+                        username,
+                        keyPath,
+                        password
                     );
 
                     // Call the service
@@ -460,6 +509,8 @@ internal sealed class ConsoleUI
                             + $"[bold]Host:[/] {profile.Host}\n"
                             + $"[bold]Port:[/] {profile.Port}\n"
                             + $"[bold]Username:[/] {profile.Username}\n"
+                            + (profile.KeyPath != null ? $"[bold]Key Path:[/] {profile.KeyPath}\n" : "")
+                            + (profile.Password != null ? $"[bold]Password:[/] {profile.Password}\n" : "")
                             + $"[bold]ID:[/] [dim]{profile.Id}[/]",
                         "update connection profile"
                     );
@@ -542,8 +593,8 @@ internal sealed class ConsoleUI
                     Host: connectionProfile.Host,
                     Port: connectionProfile.Port,
                     Username: connectionProfile.Username,
-                    KeyPath: null,
-                    Password: "test"
+                    KeyPath: connectionProfile.KeyPath,
+                    Password: connectionProfile.Password
                 );
 
                 AnsiConsole.MarkupLine($"[green]Connecting to {connectionProfile.Name}...[/]");

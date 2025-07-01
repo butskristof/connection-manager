@@ -106,6 +106,8 @@ internal sealed class ConnectionProfilesService : IConnectionProfilesService
             Host = request.Host,
             Port = request.Port,
             Username = request.Username,
+            KeyPath = request.KeyPath,
+            Password = request.Password,
         };
 
         _dbContext.ConnectionProfiles.Add(entity);
@@ -163,6 +165,8 @@ internal sealed class ConnectionProfilesService : IConnectionProfilesService
         entity.Host = request.Host;
         entity.Port = request.Port;
         entity.Username = request.Username;
+        entity.KeyPath = request.KeyPath;
+        entity.Password = request.Password;
 
         await _dbContext.SaveChangesAsync(cancellationToken);
 
