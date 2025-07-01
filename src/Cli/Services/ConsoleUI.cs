@@ -1,5 +1,7 @@
+using ConnectionManager.Core.Models;
 using ConnectionManager.Core.Services.Contracts.ConnectionProfiles;
 using ConnectionManager.Core.Services.Interfaces;
+using ErrorOr;
 using Microsoft.Extensions.Logging;
 using Spectre.Console;
 
@@ -91,7 +93,7 @@ internal sealed class ConsoleUI
                 ShowConnectionProfileMenu(selection.profile);
                 break;
             case MainMenuAction.Add:
-                ShowFeatureNotImplemented();
+                await CreateConnectionProfileAsync(cancellationToken);
                 break;
             case MainMenuAction.Exit:
                 AnsiConsole.MarkupLine("[green]Goodbye![/]");
@@ -151,6 +153,104 @@ internal sealed class ConsoleUI
                 Console.ReadKey();
                 break;
         }
+    }
+
+    private async Task CreateConnectionProfileAsync(CancellationToken cancellationToken)
+    {
+        AnsiConsole.WriteLine();
+        AnsiConsole.Write(new Rule("[bold blue]Create New Connection Profile[/]").LeftJustified());
+        AnsiConsole.WriteLine();
+
+        // Get connection profile name with validation
+        var name = AnsiConsole.Prompt(
+            new TextPrompt<string>("Enter connection profile [blue]name[/]:")
+                .PromptStyle("cyan")
+                .ValidationErrorMessage("[red]Name cannot be empty[/]")
+                .Validate(input =>
+                {
+                    if (string.IsNullOrWhiteSpace(input))
+                        return ValidationResult.Error("[red]Name is required[/]");
+
+                    return ValidationResult.Success();
+                })
+        );
+
+        // Get connection type selection
+        var connectionType = AnsiConsole.Prompt(
+            new SelectionPrompt<ConnectionType>()
+                .Title("Select [blue]connection type[/]:")
+                .UseConverter(type => type.ToString())
+                .AddChoices(
+                    Enum.GetValues<ConnectionType>().Where(t => t != ConnectionType.Unknown)
+                )
+        );
+
+        await AnsiConsole
+            .Status()
+            .Spinner(Spinner.Known.Dots)
+            .StartAsync(
+                "Creating connection profile...",
+                async ctx =>
+                {
+                    // Create the request
+                    var request = new CreateConnectionProfileRequest(name, connectionType);
+
+                    // Call the service
+                    var result = await _connectionProfilesService.CreateAsync(
+                        request,
+                        cancellationToken
+                    );
+
+                    AnsiConsole.WriteLine();
+
+                    if (result.IsError)
+                    {
+                        AnsiConsole.MarkupLine("[red]Failed to create connection profile:[/]");
+                        AnsiConsole.WriteLine();
+
+                        foreach (var error in result.Errors)
+                        {
+                            switch (error.Type)
+                            {
+                                case ErrorType.Validation:
+                                    AnsiConsole.MarkupLine(
+                                        $"[yellow]Validation Error:[/] {error.Description}"
+                                    );
+                                    if (!string.IsNullOrEmpty(error.Code))
+                                        AnsiConsole.MarkupLine(
+                                            $"[dim]  Error Code: {error.Code}[/]"
+                                        );
+                                    break;
+                                case ErrorType.Conflict:
+                                    AnsiConsole.MarkupLine(
+                                        $"[orange1]Conflict:[/] {error.Description}"
+                                    );
+                                    break;
+                                default:
+                                    AnsiConsole.MarkupLine(
+                                        $"[red]Error ({error.Code}):[/] {error.Description}"
+                                    );
+                                    break;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        var createdProfile = result.Value;
+                        AnsiConsole.MarkupLine(
+                            "[green]✓ Connection profile created successfully![/]"
+                        );
+                        AnsiConsole.WriteLine();
+                        AnsiConsole.MarkupLine($"[bold]Name:[/] {createdProfile.Name}");
+                        AnsiConsole.MarkupLine($"[bold]Type:[/] {createdProfile.ConnectionType}");
+                        AnsiConsole.MarkupLine($"[bold]ID:[/] [dim]{createdProfile.Id}[/]");
+                    }
+                }
+            );
+
+        AnsiConsole.WriteLine();
+        AnsiConsole.MarkupLine("[dim]Press any key to continue...[/]");
+        Console.ReadKey();
     }
 
     #endregion
