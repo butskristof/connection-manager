@@ -44,11 +44,11 @@ internal sealed class ConsoleUI
 
     private async Task ShowMainMenu(CancellationToken cancellationToken)
     {
-        var profilesResult = await _connectionProfilesService.GetAllAsync(cancellationToken);
-        if (profilesResult.IsError)
+        var result = await _connectionProfilesService.GetAllAsync(cancellationToken);
+        if (result.IsError)
         {
             AnsiConsole.MarkupLine("[red]Error loading profiles:[/]");
-            foreach (var error in profilesResult.Errors)
+            foreach (var error in result.Errors)
                 AnsiConsole.MarkupLine($"[red]  - {error.Code}: {error.Description}[/]");
             AnsiConsole.WriteLine();
 
@@ -56,7 +56,7 @@ internal sealed class ConsoleUI
             Console.ReadKey();
             return;
         }
-        var profiles = profilesResult.Value;
+        var profiles = result.Value;
 
         // TODO empty state
         var prompt = new SelectionPrompt<(MainMenuAction action, ConnectionProfileDTO? profile)>()
@@ -64,19 +64,43 @@ internal sealed class ConsoleUI
             .UseConverter(tuple =>
                 tuple.action switch
                 {
-                    MainMenuAction.Exit => "[red]Exit[/]",
                     MainMenuAction.Show =>
                         $"[cyan]{tuple.profile!.Name}[/] [dim]({tuple.profile!.ConnectionType})[/]",
-                    MainMenuAction.Add => "[red]Exit[/]",
+                    MainMenuAction.Add => "[green]Add New Profile[/]",
+                    MainMenuAction.Exit => "[red]Exit[/]",
                     _ => throw new ArgumentException("Unknown main menu action"),
                 }
             )
             .PageSize(10)
             .MoreChoicesText("[grey](Move up and down to reveal more profiles)[/]");
-        prompt.AddChoices(profiles.Select(p => (MainMenuAction.Show, p)));
+        prompt.AddChoices(profiles.Select(p => (MainMenuAction.Show, (ConnectionProfileDTO?)p)));
+        prompt.AddChoice((MainMenuAction.Add, null));
+        prompt.AddChoice((MainMenuAction.Exit, null));
 
         var selection = AnsiConsole.Prompt(prompt);
-        ShowConnectionProfileMenu(selection);
+        switch (selection.action)
+        {
+            case MainMenuAction.Show:
+                if (selection.profile is null)
+                {
+                    AnsiConsole.MarkupLine(
+                        "[red]Invalid selection: could not determine selected profile.[/]"
+                    );
+                    return;
+                }
+                ShowConnectionProfileMenu(selection.profile);
+                break;
+            case MainMenuAction.Add:
+                ShowFeatureNotImplemented();
+                break;
+            case MainMenuAction.Exit:
+                AnsiConsole.MarkupLine("[green]Goodbye![/]");
+                Environment.Exit(0);
+                break;
+            default:
+                AnsiConsole.MarkupLine("[red]Unknown action selected. Please try again.[/]");
+                return;
+        }
     }
 
     #endregion
@@ -118,9 +142,7 @@ internal sealed class ConsoleUI
             case ConnectionProfileMenuAction.Connect:
             case ConnectionProfileMenuAction.Edit:
             case ConnectionProfileMenuAction.Delete:
-                AnsiConsole.MarkupLine("[yellow]Feature not implemented yet[/]");
-                AnsiConsole.MarkupLine("[dim]Press any key to continue...[/]");
-                Console.ReadKey();
+                ShowFeatureNotImplemented();
                 break;
             default:
                 AnsiConsole.MarkupLine("[red]Unknown action selected. Please try again.[/]");
@@ -132,4 +154,11 @@ internal sealed class ConsoleUI
     }
 
     #endregion
+
+    private static void ShowFeatureNotImplemented()
+    {
+        AnsiConsole.MarkupLine("[yellow]Feature not implemented yet[/]");
+        AnsiConsole.MarkupLine("[dim]Press any key to continue...[/]");
+        Console.ReadKey();
+    }
 }
