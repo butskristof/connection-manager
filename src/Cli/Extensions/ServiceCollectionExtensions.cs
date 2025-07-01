@@ -7,7 +7,7 @@ internal static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddCli(this IServiceCollection services)
     {
-        services.AddScoped<ICliService, CliService>();
+        services.AddScoped<ConsoleUI>();
 
         return services;
     }
