@@ -1,7 +1,6 @@
 using ConnectionManager.Cli.Services.Ssh;
 using ConnectionManager.Core.Models;
-using ConnectionManager.Core.Services.Contracts.ConnectionProfiles;
-using ConnectionManager.Core.Services.Interfaces;
+using ConnectionManager.Core.Services.ConnectionProfiles;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
 using Spectre.Console;

@@ -2,7 +2,7 @@ using ConnectionManager.Core.Common.Constants;
 using ConnectionManager.Core.Models;
 using FluentValidation;
 
-namespace ConnectionManager.Core.Services.Contracts.ConnectionProfiles;
+namespace ConnectionManager.Core.Services.ConnectionProfiles;
 
 public sealed record CreateConnectionProfileRequest(
     string Name,

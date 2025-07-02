@@ -1,6 +1,6 @@
+using ConnectionManager.Core.Common.Validation;
 using ConnectionManager.Core.Data;
-using ConnectionManager.Core.Services.Implementations;
-using ConnectionManager.Core.Services.Interfaces;
+using ConnectionManager.Core.Services.ConnectionProfiles;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -39,7 +39,7 @@ public static class DependencyInjection
         // internal services
         services.AddScoped<IValidationService, ValidationService>();
 
-        // external services
+        // public services
         services.AddScoped<IConnectionProfilesService, ConnectionProfilesService>();
 
         return services;

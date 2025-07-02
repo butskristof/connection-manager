@@ -1,10 +1,14 @@
-using ConnectionManager.Core.Services.Interfaces;
 using FluentValidation;
 using FluentValidation.Results;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-namespace ConnectionManager.Core.Services.Implementations;
+namespace ConnectionManager.Core.Common.Validation;
+
+internal interface IValidationService
+{
+    ValidationResult Validate<T>(T request);
+}
 
 internal sealed class ValidationService : IValidationService
 {

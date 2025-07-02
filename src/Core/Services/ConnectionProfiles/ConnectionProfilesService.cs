@@ -1,14 +1,13 @@
 using ConnectionManager.Core.Common;
 using ConnectionManager.Core.Common.Constants;
+using ConnectionManager.Core.Common.Validation;
 using ConnectionManager.Core.Data;
 using ConnectionManager.Core.Models;
-using ConnectionManager.Core.Services.Contracts.ConnectionProfiles;
-using ConnectionManager.Core.Services.Interfaces;
 using ErrorOr;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
-namespace ConnectionManager.Core.Services.Implementations;
+namespace ConnectionManager.Core.Services.ConnectionProfiles;
 
 internal sealed class ConnectionProfilesService : IConnectionProfilesService
 {
