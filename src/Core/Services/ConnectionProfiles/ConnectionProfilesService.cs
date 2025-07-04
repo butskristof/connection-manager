@@ -41,7 +41,10 @@ internal sealed class ConnectionProfilesService : IConnectionProfilesService
             .Select(cp => new ConnectionProfileDTO(cp))
             .ToListAsync(cancellationToken);
 
-        _logger.LogDebug("Fetched {Count} connection profiles from database", entities.Count);
+        _logger.LogDebug(
+            "Fetched {Count} mapped connection profiles from database",
+            entities.Count
+        );
         return entities;
     }
 
@@ -67,7 +70,7 @@ internal sealed class ConnectionProfilesService : IConnectionProfilesService
             );
         }
 
-        _logger.LogDebug("Fetched connection profile with ID {Id} from database", entity.Id);
+        _logger.LogDebug("Fetched mapped connection profile with ID {Id} from database", entity.Id);
         return entity;
     }
 
@@ -87,13 +90,14 @@ internal sealed class ConnectionProfilesService : IConnectionProfilesService
             );
             return validationResult.ToValidationErrors();
         }
+        _logger.LogDebug("Validation passed for CreateConnectionProfileRequest");
 
         if (!await IsNameUniqueAsync(request.Name, null, cancellationToken))
         {
-            _logger.LogDebug("Connection profile with name '{Name}' already exists", request.Name);
+            _logger.LogDebug("Connection profile named {Name} already exists", request.Name);
             return Error.Conflict(
                 ErrorCodes.NotUnique,
-                $"A connection profile with name '{request.Name}' already exists"
+                $"A connection profile named {request.Name} already exists"
             );
         }
 
@@ -111,6 +115,7 @@ internal sealed class ConnectionProfilesService : IConnectionProfilesService
 
         _dbContext.ConnectionProfiles.Add(entity);
         await _dbContext.SaveChangesAsync(cancellationToken);
+        _logger.LogDebug("Persisted new entity to database");
 
         _logger.LogDebug("Created new connection profile with ID {Id}", entity.Id);
         return new ConnectionProfileDTO(entity);
@@ -146,16 +151,17 @@ internal sealed class ConnectionProfilesService : IConnectionProfilesService
             );
             return validationResult.ToValidationErrors();
         }
+        _logger.LogDebug("Validation passed for CreateConnectionProfileRequest");
 
         if (
             request.Name != entity.Name
             && !await IsNameUniqueAsync(request.Name, entity.Id, cancellationToken)
         )
         {
-            _logger.LogDebug("Connection profile with name '{Name}' already exists", request.Name);
+            _logger.LogDebug("Connection profile named {Name} already exists", request.Name);
             return Error.Conflict(
                 ErrorCodes.NotUnique,
-                $"A connection profile with name '{request.Name}' already exists"
+                $"A connection profile named {request.Name} already exists"
             );
         }
 
@@ -168,6 +174,7 @@ internal sealed class ConnectionProfilesService : IConnectionProfilesService
         entity.Password = request.Password;
 
         await _dbContext.SaveChangesAsync(cancellationToken);
+        _logger.LogDebug("Persisted changes to database");
 
         _logger.LogDebug("Updated connection profile with ID {Id}", entity.Id);
         return new ConnectionProfileDTO(entity);
@@ -192,11 +199,12 @@ internal sealed class ConnectionProfilesService : IConnectionProfilesService
     {
         _logger.LogDebug("Deleting connection profile with ID {Id} from database", id);
 
-        var exists = await _dbContext
-            .ConnectionProfiles.AsNoTracking()
-            .AnyAsync(cp => cp.Id == id, cancellationToken);
+        var entity = await _dbContext.ConnectionProfiles.SingleOrDefaultAsync(
+            cp => cp.Id == id,
+            cancellationToken
+        );
 
-        if (!exists)
+        if (entity is null)
         {
             _logger.LogDebug("Connection profile with ID {Id} not found in database", id);
             return Error.NotFound(
@@ -205,9 +213,8 @@ internal sealed class ConnectionProfilesService : IConnectionProfilesService
             );
         }
 
-        await _dbContext
-            .ConnectionProfiles.Where(cp => cp.Id == id)
-            .ExecuteDeleteAsync(cancellationToken);
+        _dbContext.ConnectionProfiles.Remove(entity);
+        await _dbContext.SaveChangesAsync(cancellationToken);
 
         _logger.LogDebug("Deleted connection profile with ID {Id} from database", id);
         return Result.Deleted;
