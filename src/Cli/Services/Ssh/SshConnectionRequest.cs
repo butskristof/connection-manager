@@ -1,6 +1,6 @@
 namespace ConnectionManager.Cli.Services.Ssh;
 
-public sealed record SshConnectionRequest(
+internal sealed record SshConnectionRequest(
     string Host,
     int Port,
     string Username,

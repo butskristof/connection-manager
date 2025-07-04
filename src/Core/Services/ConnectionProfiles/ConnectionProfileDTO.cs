@@ -1,6 +1,6 @@
 using ConnectionManager.Core.Models;
 
-namespace ConnectionManager.Core.Services.Contracts.ConnectionProfiles;
+namespace ConnectionManager.Core.Services.ConnectionProfiles;
 
 public sealed record ConnectionProfileDTO(
     Guid Id,

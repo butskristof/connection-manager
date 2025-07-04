@@ -5,7 +5,7 @@ namespace ConnectionManager.Cli.Extensions;
 
 internal static class ServiceCollectionExtensions
 {
-    public static IServiceCollection AddCli(this IServiceCollection services)
+    internal static IServiceCollection AddCli(this IServiceCollection services)
     {
         services.AddScoped<ConsoleUI>();
         services.AddScoped<ISshConnector, SshConnector>();
