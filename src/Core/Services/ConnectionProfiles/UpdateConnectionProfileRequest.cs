@@ -1,7 +1,5 @@
-using ConnectionManager.Core.Common.Constants;
 using ConnectionManager.Core.Common.Validation;
 using ConnectionManager.Core.Models;
-using FluentValidation;
 
 namespace ConnectionManager.Core.Services.ConnectionProfiles;
 
@@ -19,7 +17,7 @@ public sealed record UpdateConnectionProfileRequest(
 internal sealed class UpdateConnectionProfileRequestValidator
     : BaseConnectionProfileRequestValidator<UpdateConnectionProfileRequest>
 {
-    public UpdateConnectionProfileRequestValidator()
+    internal UpdateConnectionProfileRequestValidator()
     {
         RuleFor(r => r.Id).NotEmptyWithErrorCode();
     }

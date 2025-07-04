@@ -13,6 +13,4 @@ public sealed record CreateConnectionProfileRequest(
 ) : BaseConnectionProfileRequest(Name, ConnectionType, Host, Port, Username, KeyPath, Password);
 
 internal sealed class CreateConnectionProfileRequestValidator
-    : BaseConnectionProfileRequestValidator<CreateConnectionProfileRequest>
-{
-}
+    : BaseConnectionProfileRequestValidator<CreateConnectionProfileRequest> { }

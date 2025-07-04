@@ -17,7 +17,7 @@ internal sealed class ConnectionProfilesService : IConnectionProfilesService
     private readonly AppDbContext _dbContext;
     private readonly IValidationService _validationService;
 
-    public ConnectionProfilesService(
+    internal ConnectionProfilesService(
         ILogger<ConnectionProfilesService> logger,
         AppDbContext dbContext,
         IValidationService validationService
@@ -151,7 +151,7 @@ internal sealed class ConnectionProfilesService : IConnectionProfilesService
             );
             return validationResult.ToValidationErrors();
         }
-        _logger.LogDebug("Validation passed for CreateConnectionProfileRequest");
+        _logger.LogDebug("Validation passed for UpdateConnectionProfileRequest");
 
         if (
             request.Name != entity.Name
@@ -187,8 +187,8 @@ internal sealed class ConnectionProfilesService : IConnectionProfilesService
     ) =>
         _dbContext
             .ConnectionProfiles.AsNoTracking()
-            .AllAsync(
-                cp => cp.Name != name || (id.HasValue && cp.Id == id.Value),
+            .AnyAsync(
+                cp => cp.Name == name && (!id.HasValue || cp.Id != id.Value),
                 cancellationToken
             );
 

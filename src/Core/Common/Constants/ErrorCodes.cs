@@ -3,11 +3,11 @@ namespace ConnectionManager.Core.Common.Constants;
 internal static class ErrorCodes
 {
     // general
-    public const string NotFound = "NotFound";
+    internal const string NotFound = "NotFound";
 
     // validation
-    public const string Required = "Required";
-    public const string Invalid = "Invalid";
-    public const string MaxLength = "MaxLength";
-    public const string NotUnique = "NotUnique";
+    internal const string Required = "Required";
+    internal const string Invalid = "Invalid";
+    internal const string MaxLength = "MaxLength";
+    internal const string NotUnique = "NotUnique";
 }

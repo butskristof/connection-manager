@@ -1,4 +1,5 @@
 using ConnectionManager.Cli.Services.Ssh;
+using ConnectionManager.Core.Common.Constants;
 using ConnectionManager.Core.Models;
 using ConnectionManager.Core.Services.ConnectionProfiles;
 using ErrorOr;
@@ -15,7 +16,7 @@ internal sealed class ConsoleUI
     private readonly IConnectionProfilesService _connectionProfilesService;
     private readonly ISshConnector _sshConnector;
 
-    public ConsoleUI(
+    internal ConsoleUI(
         ILogger<ConsoleUI> logger,
         IConnectionProfilesService connectionProfilesService,
         ISshConnector sshConnector
@@ -28,7 +29,7 @@ internal sealed class ConsoleUI
 
     #endregion
 
-    public async Task RunAsync(CancellationToken cancellationToken = default)
+    internal async Task RunAsync(CancellationToken cancellationToken = default)
     {
         _logger.LogDebug("Starting console UI");
 
@@ -246,8 +247,10 @@ internal sealed class ConsoleUI
             .ValidationErrorMessage("[red]Please enter a valid port number (1-65535)[/]")
             .Validate(port =>
             {
-                if (port is < 1 or > 65535)
-                    return ValidationResult.Error("[red]Port must be between 1 and 65535[/]");
+                if (port is < ApplicationConstants.MinPort or > ApplicationConstants.MaxPort)
+                    return ValidationResult.Error(
+                        $"[red]Port must be between {ApplicationConstants.MinPort} and {ApplicationConstants.MaxPort}[/]"
+                    );
 
                 return ValidationResult.Success();
             });
