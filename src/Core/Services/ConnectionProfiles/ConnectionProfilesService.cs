@@ -17,7 +17,7 @@ internal sealed class ConnectionProfilesService : IConnectionProfilesService
     private readonly AppDbContext _dbContext;
     private readonly IValidationService _validationService;
 
-    internal ConnectionProfilesService(
+    public ConnectionProfilesService(
         ILogger<ConnectionProfilesService> logger,
         AppDbContext dbContext,
         IValidationService validationService
@@ -187,8 +187,8 @@ internal sealed class ConnectionProfilesService : IConnectionProfilesService
     ) =>
         _dbContext
             .ConnectionProfiles.AsNoTracking()
-            .AnyAsync(
-                cp => cp.Name == name && (!id.HasValue || cp.Id != id.Value),
+            .AllAsync(
+                cp => cp.Name != name || (id.HasValue && cp.Id == id.Value),
                 cancellationToken
             );
 

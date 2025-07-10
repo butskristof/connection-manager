@@ -17,7 +17,7 @@ public sealed record UpdateConnectionProfileRequest(
 internal sealed class UpdateConnectionProfileRequestValidator
     : BaseConnectionProfileRequestValidator<UpdateConnectionProfileRequest>
 {
-    internal UpdateConnectionProfileRequestValidator()
+    public UpdateConnectionProfileRequestValidator()
     {
         RuleFor(r => r.Id).NotEmptyWithErrorCode();
     }

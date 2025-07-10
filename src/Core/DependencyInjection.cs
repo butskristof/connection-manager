@@ -30,6 +30,7 @@ public static class DependencyInjection
     )
     {
         services.AddDbContext<AppDbContext>(builder => builder.UseSqlite(connectionString));
+        services.AddScoped<IDatabaseInitialiser, DatabaseInitialiser>();
 
         return services;
     }
