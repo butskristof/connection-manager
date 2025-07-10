@@ -13,11 +13,16 @@ internal sealed class SshConnector : ISshConnector
     {
         var startInfo = new ProcessStartInfo
         {
-            FileName = "ssh",
+            FileName = GetCommand(request),
             Arguments = BuildArguments(request),
             UseShellExecute = false,
             CreateNoWindow = false,
         };
+
+        if (!string.IsNullOrWhiteSpace(request.Password))
+        {
+            startInfo.Environment["SSHPASS"] = request.Password;
+        }
 
         try
         {
@@ -30,18 +35,25 @@ internal sealed class SshConnector : ISshConnector
         }
     }
 
+    private static string GetCommand(SshConnectionRequest request)
+    {
+        return !string.IsNullOrWhiteSpace(request.Password) ? "sshpass" : "ssh";
+    }
+
     private static string BuildArguments(SshConnectionRequest request)
     {
         var args = new List<string>();
 
+        if (!string.IsNullOrWhiteSpace(request.Password))
+        {
+            args.Add("-e");
+            args.Add("ssh");
+        }
+
         args.Add($"{request.Username}@{request.Host}");
         args.Add($"-p {request.Port}");
 
-        if (!string.IsNullOrWhiteSpace(request.Password))
-        {
-            // TODO add sshpass
-        }
-        else if (!string.IsNullOrWhiteSpace(request.KeyPath))
+        if (string.IsNullOrWhiteSpace(request.Password) && !string.IsNullOrWhiteSpace(request.KeyPath))
         {
             args.Add($"-i \"{request.KeyPath}\"");
         }
