@@ -130,52 +130,52 @@ internal sealed class ConsoleUI
                     r is { IsAvailable: false, Dependency.Type: SystemDependencyType.Required }
                 )
                 .ToList();
-            if (missingRequired.Count != 0)
-            {
-                var panel = new Panel(
-                    string.Join(
-                        "\n",
-                        missingRequired.Select(r =>
-                            $"• [bold]{r.Dependency.Name}[/]: {r.Dependency.Description}"
-                        )
-                    )
-                )
-                    .Header("[red]⚠️ Missing required dependencies[/]")
-                    .BorderColor(Color.Red)
-                    .RoundedBorder();
-
-                AnsiConsole.Write(panel);
-                AnsiConsole.WriteLine();
-            }
+            PrintMissingDependencies(
+                missingRequired,
+                "[red]⚠️ Missing required dependencies[/]",
+                Color.Red
+            );
 
             var missingOptional = dependencyResults
                 .Where(r =>
                     r is { IsAvailable: false, Dependency.Type: SystemDependencyType.Optional }
                 )
                 .ToList();
-
-            if (missingOptional.Count != 0)
-            {
-                var panel = new Panel(
-                    string.Join(
-                        "\n",
-                        missingOptional.Select(r =>
-                            $"• [bold]{r.Dependency.Name}[/]: {r.Dependency.Description}"
-                        )
-                    )
-                )
-                    .Header("[yellow]⚠️ Missing optional dependencies[/]")
-                    .BorderColor(Color.Yellow)
-                    .RoundedBorder();
-
-                AnsiConsole.Write(panel);
-                AnsiConsole.WriteLine();
-            }
+            PrintMissingDependencies(
+                missingOptional,
+                "[yellow]⚠️ Missing optional dependencies[/]",
+                Color.Yellow
+            );
         }
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "Error checking system dependencies");
         }
+    }
+
+    private static void PrintMissingDependencies(
+        List<SystemDependencyCheckResult> missingDependencies,
+        string headerText,
+        Color borderColor
+    )
+    {
+        if (missingDependencies.Count == 0)
+            return;
+
+        var panel = new Panel(
+            string.Join(
+                "\n",
+                missingDependencies.Select(r =>
+                    $"• [bold]{r.Dependency.Name}[/]: {r.Dependency.Description}"
+                )
+            )
+        )
+            .Header(headerText)
+            .BorderColor(borderColor)
+            .RoundedBorder();
+
+        AnsiConsole.Write(panel);
+        AnsiConsole.WriteLine();
     }
 
     #endregion
