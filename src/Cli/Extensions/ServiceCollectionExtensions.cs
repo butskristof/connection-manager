@@ -1,3 +1,4 @@
+using ConnectionManager.Cli.Services.Environment;
 using ConnectionManager.Cli.Services.Ssh;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -8,6 +9,7 @@ internal static class ServiceCollectionExtensions
     internal static IServiceCollection AddCli(this IServiceCollection services)
     {
         services.AddScoped<ConsoleUI>();
+        services.AddScoped<IEnvironmentCheckService, EnvironmentCheckService>();
         services.AddScoped<ISshConnector, SshConnector>();
 
         return services;
