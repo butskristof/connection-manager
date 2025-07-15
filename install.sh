@@ -76,10 +76,20 @@ parse_args() {
     while [[ $# -gt 0 ]]; do
         case $1 in
             --install-dir)
+                if [[ -z "$2" || "$2" == --* ]]; then
+                    print_error "Missing or invalid value for --install-dir. Expected a directory path."
+                    usage
+                    exit 1
+                fi
                 INSTALL_DIR="$2"
                 shift 2
                 ;;
             --name)
+                if [[ -z "$2" || "$2" == --* ]]; then
+                    print_error "Missing or invalid value for --name. Expected a name."
+                    usage
+                    exit 1
+                fi
                 NAME="$2"
                 shift 2
                 ;;
