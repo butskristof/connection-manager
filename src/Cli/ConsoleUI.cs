@@ -1,3 +1,4 @@
+using ConnectionManager.Cli.Services.Environment;
 using ConnectionManager.Cli.Services.Ssh;
 using ConnectionManager.Core.Common.Constants;
 using ConnectionManager.Core.Models;
@@ -15,16 +16,19 @@ internal sealed class ConsoleUI
     private readonly ILogger<ConsoleUI> _logger;
     private readonly IConnectionProfilesService _connectionProfilesService;
     private readonly ISshConnector _sshConnector;
+    private readonly IEnvironmentCheckService _environmentCheckService;
 
     public ConsoleUI(
         ILogger<ConsoleUI> logger,
         IConnectionProfilesService connectionProfilesService,
-        ISshConnector sshConnector
+        ISshConnector sshConnector,
+        IEnvironmentCheckService environmentCheckService
     )
     {
         _logger = logger;
         _connectionProfilesService = connectionProfilesService;
         _sshConnector = sshConnector;
+        _environmentCheckService = environmentCheckService;
     }
 
     #endregion
@@ -34,6 +38,8 @@ internal sealed class ConsoleUI
         _logger.LogDebug("Starting console UI");
 
         AnsiConsole.Write(new FigletText("Connection Manager").LeftJustified().Color(Color.Blue));
+
+        await CheckEnvironment(cancellationToken);
 
         while (!cancellationToken.IsCancellationRequested)
             await ShowMainMenu(cancellationToken);
@@ -106,6 +112,70 @@ internal sealed class ConsoleUI
                 AnsiConsole.MarkupLine("[red]Unknown action selected. Please try again.[/]");
                 return;
         }
+    }
+
+    #endregion
+
+    #region environment checks
+
+    private async Task CheckEnvironment(CancellationToken cancellationToken)
+    {
+        try
+        {
+            var dependencyResults = await _environmentCheckService.CheckSystemDependenciesAsync(
+                cancellationToken
+            );
+            var missingRequired = dependencyResults
+                .Where(r =>
+                    r is { IsAvailable: false, Dependency.Type: SystemDependencyType.Required }
+                )
+                .ToList();
+            PrintMissingDependencies(
+                missingRequired,
+                "[red]⚠️ Missing required dependencies[/]",
+                Color.Red
+            );
+
+            var missingOptional = dependencyResults
+                .Where(r =>
+                    r is { IsAvailable: false, Dependency.Type: SystemDependencyType.Optional }
+                )
+                .ToList();
+            PrintMissingDependencies(
+                missingOptional,
+                "[yellow]⚠️ Missing optional dependencies[/]",
+                Color.Yellow
+            );
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Error checking system dependencies");
+        }
+    }
+
+    private static void PrintMissingDependencies(
+        List<SystemDependencyCheckResult> missingDependencies,
+        string headerText,
+        Color borderColor
+    )
+    {
+        if (missingDependencies.Count == 0)
+            return;
+
+        var panel = new Panel(
+            string.Join(
+                "\n",
+                missingDependencies.Select(r =>
+                    $"• [bold]{r.Dependency.Name}[/]: {r.Dependency.Description}"
+                )
+            )
+        )
+            .Header(headerText)
+            .BorderColor(borderColor)
+            .RoundedBorder();
+
+        AnsiConsole.Write(panel);
+        AnsiConsole.WriteLine();
     }
 
     #endregion
