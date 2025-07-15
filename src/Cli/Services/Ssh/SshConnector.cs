@@ -53,7 +53,10 @@ internal sealed class SshConnector : ISshConnector
         args.Add($"{request.Username}@{request.Host}");
         args.Add($"-p {request.Port}");
 
-        if (string.IsNullOrWhiteSpace(request.Password) && !string.IsNullOrWhiteSpace(request.KeyPath))
+        if (
+            string.IsNullOrWhiteSpace(request.Password)
+            && !string.IsNullOrWhiteSpace(request.KeyPath)
+        )
         {
             args.Add($"-i \"{request.KeyPath}\"");
         }
