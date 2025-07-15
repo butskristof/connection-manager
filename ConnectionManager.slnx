@@ -5,6 +5,7 @@
     <File Path=".csharpierignore" />
     <File Path=".csharpierrc.json" />
     <File Path=".config\dotnet-tools.json" />
+    <File Path="install.sh" />
   </Folder>
   <Folder Name="/src/">
     <Project Path="src\Cli\Cli.csproj" Type="Classic C#" />
