@@ -16,7 +16,7 @@ internal sealed class ConsoleUI
     private readonly IConnectionProfilesService _connectionProfilesService;
     private readonly ISshConnector _sshConnector;
 
-    internal ConsoleUI(
+    public ConsoleUI(
         ILogger<ConsoleUI> logger,
         IConnectionProfilesService connectionProfilesService,
         ISshConnector sshConnector

@@ -17,7 +17,7 @@ internal sealed class ValidationService : IValidationService
     private readonly ILogger<ValidationService> _logger;
     private readonly IServiceProvider _serviceProvider;
 
-    internal ValidationService(ILogger<ValidationService> logger, IServiceProvider serviceProvider)
+    public ValidationService(ILogger<ValidationService> logger, IServiceProvider serviceProvider)
     {
         _logger = logger;
         _serviceProvider = serviceProvider;
