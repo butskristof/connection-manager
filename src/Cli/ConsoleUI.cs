@@ -39,6 +39,8 @@ internal sealed class ConsoleUI
 
         AnsiConsole.Write(new FigletText("Connection Manager").LeftJustified().Color(Color.Blue));
 
+        await CheckEnvironment(cancellationToken);
+
         while (!cancellationToken.IsCancellationRequested)
             await ShowMainMenu(cancellationToken);
     }
@@ -54,8 +56,6 @@ internal sealed class ConsoleUI
 
     private async Task ShowMainMenu(CancellationToken cancellationToken)
     {
-        await CheckEnvironment(cancellationToken);
-
         var result = await _connectionProfilesService.GetAllAsync(cancellationToken);
         if (result.IsError)
         {
