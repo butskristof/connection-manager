@@ -132,12 +132,18 @@ internal sealed class ConsoleUI
                 .GroupBy(d => d.Type)
                 .ToDictionary(g => g.Key, g => g.ToList());
             PrintMissingDependencies(
-                missingDependenciesByType[SystemDependency.SystemDependencyType.Required],
+                missingDependenciesByType.GetValueOrDefault(
+                    SystemDependency.SystemDependencyType.Required,
+                    []
+                ),
                 "[red]⚠️ Missing required dependencies[/]",
                 Color.Red
             );
             PrintMissingDependencies(
-                missingDependenciesByType[SystemDependency.SystemDependencyType.Optional],
+                missingDependenciesByType.GetValueOrDefault(
+                    SystemDependency.SystemDependencyType.Optional,
+                    []
+                ),
                 "[yellow]⚠️ Missing optional dependencies[/]",
                 Color.Yellow
             );
