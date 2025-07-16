@@ -1,3 +1,4 @@
+using CliWrap.Exceptions;
 using ConnectionManager.Cli.Services.Environment;
 using ConnectionManager.Cli.Services.Ssh;
 using ConnectionManager.Core.Common.Constants;
@@ -215,7 +216,7 @@ internal sealed class ConsoleUI
             case ConnectionProfileMenuAction.BackToMainMenu:
                 return;
             case ConnectionProfileMenuAction.Connect:
-                ConnectToProfile(connectionProfile);
+                await ConnectToProfile(connectionProfile);
                 break;
             case ConnectionProfileMenuAction.Edit:
                 await UpdateConnectionProfileAsync(connectionProfile, cancellationToken);
@@ -668,7 +669,7 @@ internal sealed class ConsoleUI
 
     #endregion
 
-    private void ConnectToProfile(ConnectionProfileDTO connectionProfile)
+    private async Task ConnectToProfile(ConnectionProfileDTO connectionProfile)
     {
         switch (connectionProfile.ConnectionType)
         {
@@ -683,8 +684,20 @@ internal sealed class ConsoleUI
                 );
 
                 AnsiConsole.MarkupLine($"[green]Connecting to {connectionProfile.Name}...[/]");
-                _sshConnector.Connect(request);
-                ExitApplication();
+                try
+                {
+                    await _sshConnector.ConnectAsync(request);
+                    ExitApplication();
+                }
+                catch (CommandExecutionException ex)
+                {
+                    AnsiConsole.MarkupLine($"[red]SSH session failed: {ex.Message}[/]");
+                    AnsiConsole.WriteException(
+                        ex,
+                        ExceptionFormats.ShortenEverything | ExceptionFormats.ShowLinks
+                    );
+                    ExitApplication();
+                }
                 break;
             }
             case ConnectionType.Unknown:
@@ -696,8 +709,6 @@ internal sealed class ConsoleUI
 
     private static void ExitApplication()
     {
-        AnsiConsole.WriteLine();
-        AnsiConsole.MarkupLine("[green]Goodbye![/]");
         Environment.Exit(0);
     }
 

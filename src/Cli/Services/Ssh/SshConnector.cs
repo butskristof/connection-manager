@@ -1,66 +1,53 @@
-using System.Diagnostics;
+using CliWrap;
 
 namespace ConnectionManager.Cli.Services.Ssh;
 
 internal interface ISshConnector
 {
-    void Connect(SshConnectionRequest request);
+    Task ConnectAsync(SshConnectionRequest request, CancellationToken cancellationToken = default);
 }
 
 internal sealed class SshConnector : ISshConnector
 {
-    public void Connect(SshConnectionRequest request)
+    public async Task ConnectAsync(
+        SshConnectionRequest request,
+        CancellationToken cancellationToken = default
+    )
     {
-        var startInfo = new ProcessStartInfo
-        {
-            FileName = GetCommand(request),
-            Arguments = BuildArguments(request),
-            UseShellExecute = false,
-            CreateNoWindow = false,
-        };
+        await using var stdIn = Console.OpenStandardInput();
+        await using var stdOut = Console.OpenStandardOutput();
+        await using var stdErr = Console.OpenStandardError();
 
-        if (!string.IsNullOrWhiteSpace(request.Password))
-        {
-            startInfo.Environment["SSHPASS"] = request.Password;
-        }
+        var cmd = stdIn | GetCommand(request) | (stdOut, stdErr);
 
-        try
-        {
-            using var process = Process.Start(startInfo);
-            process?.WaitForExit();
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"SSH session failed: {ex.Message}");
-        }
+        await cmd.ExecuteAsync(cancellationToken);
     }
 
-    private static string GetCommand(SshConnectionRequest request)
+    private static Command GetCommand(SshConnectionRequest request)
     {
-        return !string.IsNullOrWhiteSpace(request.Password) ? "sshpass" : "ssh";
-    }
+        var useSshPass = !string.IsNullOrWhiteSpace(request.Password);
 
-    private static string BuildArguments(SshConnectionRequest request)
-    {
-        var args = new List<string>();
+        return CliWrap
+            .Cli.Wrap(useSshPass ? "sshpass" : "ssh")
+            .WithArguments(args =>
+            {
+                if (useSshPass)
+                    args.Add("-e").Add("ssh");
 
-        if (!string.IsNullOrWhiteSpace(request.Password))
-        {
-            args.Add("-e");
-            args.Add("ssh");
-        }
+                args.Add($"{request.Username}@{request.Host}");
+                args.Add("-p").Add(request.Port);
 
-        args.Add($"{request.Username}@{request.Host}");
-        args.Add($"-p {request.Port}");
+                // Force pseudo-tty allocation
+                // https://stackoverflow.com/a/7122115
+                args.Add("-tt");
 
-        if (
-            string.IsNullOrWhiteSpace(request.Password)
-            && !string.IsNullOrWhiteSpace(request.KeyPath)
-        )
-        {
-            args.Add($"-i \"{request.KeyPath}\"");
-        }
-
-        return string.Join(" ", args);
+                if (!useSshPass && !string.IsNullOrWhiteSpace(request.KeyPath))
+                    args.Add("-i").Add(request.KeyPath);
+            })
+            .WithEnvironmentVariables(env =>
+            {
+                if (useSshPass)
+                    env.Set("SSHPASS", request.Password);
+            });
     }
 }
