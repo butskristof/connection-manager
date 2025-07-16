@@ -4,12 +4,12 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace ConnectionManager.Cli.Extensions;
 
-internal static class ServiceCollectionExtensions
+internal static class DependencyInjection
 {
     internal static IServiceCollection AddCli(this IServiceCollection services)
     {
         services.AddScoped<ConsoleUI>();
-        services.AddScoped<IEnvironmentCheckService, EnvironmentCheckService>();
+        services.AddScoped<IEnvironmentService, EnvironmentService>();
         services.AddScoped<ISshConnector, SshConnector>();
 
         return services;

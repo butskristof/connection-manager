@@ -16,19 +16,19 @@ internal sealed class ConsoleUI
     private readonly ILogger<ConsoleUI> _logger;
     private readonly IConnectionProfilesService _connectionProfilesService;
     private readonly ISshConnector _sshConnector;
-    private readonly IEnvironmentCheckService _environmentCheckService;
+    private readonly IEnvironmentService _environmentService;
 
     public ConsoleUI(
         ILogger<ConsoleUI> logger,
         IConnectionProfilesService connectionProfilesService,
         ISshConnector sshConnector,
-        IEnvironmentCheckService environmentCheckService
+        IEnvironmentService environmentService
     )
     {
         _logger = logger;
         _connectionProfilesService = connectionProfilesService;
         _sshConnector = sshConnector;
-        _environmentCheckService = environmentCheckService;
+        _environmentService = environmentService;
     }
 
     #endregion
@@ -122,27 +122,21 @@ internal sealed class ConsoleUI
     {
         try
         {
-            var dependencyResults = await _environmentCheckService.CheckSystemDependenciesAsync(
+            var systemDependencyCheckResults = await _environmentService.CheckSystemDependencies(
                 cancellationToken
             );
-            var missingRequired = dependencyResults
-                .Where(r =>
-                    r is { IsAvailable: false, Dependency.Type: SystemDependencyType.Required }
-                )
-                .ToList();
+            var missingDependenciesByType = systemDependencyCheckResults
+                .Where(kvp => !kvp.Value) // only not available (false in result)
+                .Select(kvp => SystemDependencies.AllByName[kvp.Key]) // translate name from result into SystemDependency
+                .GroupBy(d => d.Type)
+                .ToDictionary(g => g.Key, g => g.ToList());
             PrintMissingDependencies(
-                missingRequired,
+                missingDependenciesByType[SystemDependency.SystemDependencyType.Required],
                 "[red]⚠️ Missing required dependencies[/]",
                 Color.Red
             );
-
-            var missingOptional = dependencyResults
-                .Where(r =>
-                    r is { IsAvailable: false, Dependency.Type: SystemDependencyType.Optional }
-                )
-                .ToList();
             PrintMissingDependencies(
-                missingOptional,
+                missingDependenciesByType[SystemDependency.SystemDependencyType.Optional],
                 "[yellow]⚠️ Missing optional dependencies[/]",
                 Color.Yellow
             );
@@ -150,11 +144,16 @@ internal sealed class ConsoleUI
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "Error checking system dependencies");
+            AnsiConsole.MarkupLine("[red]Error checking system dependencies[/]");
+            AnsiConsole.WriteException(
+                ex,
+                ExceptionFormats.ShortenEverything | ExceptionFormats.ShowLinks
+            );
         }
     }
 
     private static void PrintMissingDependencies(
-        List<SystemDependencyCheckResult> missingDependencies,
+        List<SystemDependency> missingDependencies,
         string headerText,
         Color borderColor
     )
@@ -165,9 +164,7 @@ internal sealed class ConsoleUI
         var panel = new Panel(
             string.Join(
                 "\n",
-                missingDependencies.Select(r =>
-                    $"• [bold]{r.Dependency.Name}[/]: {r.Dependency.Description}"
-                )
+                missingDependencies.Select(d => $"• [bold]{d.Name}[/]: {d.Description}")
             )
         )
             .Header(headerText)
