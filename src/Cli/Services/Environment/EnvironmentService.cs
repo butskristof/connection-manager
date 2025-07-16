@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using CliWrap;
 using Microsoft.Extensions.Logging;
 
@@ -35,8 +36,9 @@ internal sealed class EnvironmentService : IEnvironmentService
             dependencies.Count
         );
 
-        var results = new Dictionary<string, bool>();
-        foreach (var systemDependency in dependencies)
+        var results = new ConcurrentDictionary<string, bool>();
+
+        var dependencyTasks = dependencies.Select(async systemDependency =>
         {
             var available = await CheckSystemDependency(systemDependency, cancellationToken);
             _logger.LogInformation(
@@ -44,8 +46,10 @@ internal sealed class EnvironmentService : IEnvironmentService
                 systemDependency.Name,
                 available ? "available" : "not available"
             );
-            results.Add(systemDependency.Name, available);
-        }
+            results.TryAdd(systemDependency.Name, available);
+        });
+
+        await Task.WhenAll(dependencyTasks);
 
         return results;
     }
