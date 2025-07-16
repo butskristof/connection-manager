@@ -16,19 +16,7 @@ internal static class SystemDependencies
         "Utility for non-interactive SSH password authentication"
     );
 
-    internal static readonly SystemDependency Abc = new(
-        "abc",
-        SystemDependency.SystemDependencyType.Required,
-        "Unknown system dependency"
-    );
-
-    internal static readonly SystemDependency Def = new(
-        "def",
-        SystemDependency.SystemDependencyType.Optional,
-        "Unknown system dependency"
-    );
-
-    internal static IReadOnlyCollection<SystemDependency> All => [Ssh, SshPass, Abc, Def];
+    internal static IReadOnlyCollection<SystemDependency> All => [Ssh, SshPass];
     internal static IReadOnlyDictionary<string, SystemDependency> AllByName =>
         All.ToImmutableDictionary(d => d.Name, d => d);
 }
