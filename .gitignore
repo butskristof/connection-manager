@@ -776,5 +776,5 @@ FodyWeavers.xsd
 # End of https://www.toptal.com/developers/gitignore/api/windows,linux,macos,vim,visualstudio,visualstudiocode,rider,dotnetcore,aspnetcore,jetbrains+all
 
 # project-specific
-**/*CLAUDE*
+**/.claude
 app.db*
