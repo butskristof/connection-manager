@@ -1,61 +1,40 @@
-# connection-manager
+# Connection Manager
 
-This is a simple CLI tool to launch remote (SSH) connections from the terminal without having to provide credentials every time. 
-
-## Features
-* Pick from a list of preconfigured connections and start a session
-* Manage the saved connections (host, port, username, password or SSH key, ...)
-* Start an ad-hoc connection using e.g. the default SSH key or a given set of credentials
+Command line tool to make working with remote connections such as SSH easier. Manage a collection of connection profiles and use them to quickly connect to servers.
 
 ## Installation
 
-### Quick Install (Recommended)
+By default, the install script puts the tool in `~/tools/connection-manager` and generates a `connection-manager` executable. Both the location and name can be customized with command line options. 
+The install script will:
+- do a self-contained release build
+- move the app files into the specified directory
+- create a symlink to the executable in `~/usr/local/bin`
+
+On first start, an `app.db` file will be created in the installation directory to store your connection profiles.  
+To update, run the install script again. This will preserve the application database so no data is lost.
+
 ```bash
-# Install to ~/tools/connection-manager with default settings
+# Install to ~/tools/connection-manager
 ./install.sh
 
 # Custom installation directory and executable name
 ./install.sh --install-dir ~/apps --name conn-mgr
 
-# Install with verbose output
+# With verbose output
 ./install.sh --verbose
 ```
 
-### What the Install Script Does
-The `install.sh` script creates a complete, self-contained installation:
+## Usage
 
-1. **Builds a self-contained executable** - No .NET runtime required on target system
-2. **Creates installation directory** - Default: `~/tools/connection-manager`
-3. **Preserves your data** - Existing database is kept during updates
-4. **Generates wrapper script** - Ensures configuration files are found correctly
-5. **Creates global symlink** - Adds executable to `/usr/local/bin` for system-wide access
+After installation, you can run the tool from your shell by using the name you specified during installation (default is `connection-manager`).
+A rich terminal UI will guide you through managing your connections and connecting to servers.
 
-### Installation Structure
-```
-~/tools/connection-manager/
-├── ConnectionManager.Cli          # Self-contained executable
-├── connection-manager             # Wrapper script
-├── appsettings.json              # Configuration
-├── app.db                        # Your connection profiles (preserved during updates)
-└── *.dll                         # Runtime dependencies
-```
+## Development
 
-### Usage After Installation
-```bash
-# Run from anywhere after installation
-connection-manager
+### Technology stack
+- .NET 9
+- Spectre.Console for terminal UI
+- EF Core with SQLite
 
-# Or use custom name if specified during install
-conn-mgr
-```
+See [CLAUDE.md](CLAUDE.md) for detailed architectural guidance and development patterns.
 
-### Updating
-Simply run the install script again - your connection profiles and settings will be preserved:
-```bash
-./install.sh  # Updates installation, keeps your data
-```
-
-## Technology 
-* .NET 9 / C# 13 
-* EF Core with SQLite storage 
-* Spectre.Console 

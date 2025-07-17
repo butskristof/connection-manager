@@ -4,11 +4,11 @@
     <File Path="Directory.Packages.props" />
     <File Path=".csharpierignore" />
     <File Path=".csharpierrc.json" />
-    <File Path=".config\dotnet-tools.json" />
+    <File Path=".config/dotnet-tools.json" />
     <File Path="install.sh" />
   </Folder>
   <Folder Name="/src/">
-    <Project Path="src\Cli\Cli.csproj" Type="Classic C#" />
-    <Project Path="src\Core\Core.csproj" Type="Classic C#" />
+    <Project Path="src/Cli/Cli.csproj" Type="Classic C#" />
+    <Project Path="src/Core/Core.csproj" Type="Classic C#" />
   </Folder>
 </Solution>
